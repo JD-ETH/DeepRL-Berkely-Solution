@@ -108,19 +108,19 @@ class RL_Trainer(object):
             # collect trajectories, to be used for training
             training_returns = self.collect_training_trajectories(itr,
                                 initial_expertdata, collect_policy,
-                                self.params['batch_size']) ## TODO implement this function below
+                                self.params['batch_size'])
             paths, envsteps_this_batch, train_video_paths = training_returns
             self.total_envsteps += envsteps_this_batch
 
             # relabel the collected obs with actions from a provided expert policy
             if relabel_with_expert and itr>=start_relabel_with_expert:
-                paths = self.do_relabel_with_expert(expert_policy, paths) ## TODO implement this function below
+                paths = self.do_relabel_with_expert(expert_policy, paths)
 
             # add collected data to replay buffer
             self.agent.add_to_replay_buffer(paths)
 
             # train agent (using sampled data from replay buffer)
-            self.train_agent() ## TODO implement this function below
+            self.train_agent()
 
             # log/save
             if self.log_video or self.log_metrics:
@@ -165,7 +165,6 @@ class RL_Trainer(object):
         train_video_paths = None
         if self.log_video:
             print('\nCollecting train rollouts to be used for saving videos...')
-            ## TODO look in utils and implement sample_n_trajectories
             train_video_paths = sample_n_trajectories(self.env, collect_policy, MAX_NVIDEO, MAX_VIDEO_LEN, True)
 
         return paths, envsteps_this_batch, train_video_paths
