@@ -49,13 +49,13 @@ class BootstrappedContinuousCritic(BaseCritic):
             size=self.size))
         self.sy_target_n = tf.placeholder(shape=[None], name="critic_target", dtype=tf.float32)
 
-        # TODO: set up the critic loss
+        # set up the critic loss
         # HINT1: the critic_prediction should regress onto the targets placeholder (sy_target_n)
         # HINT2: use tf.losses.mean_squared_error
-        self.critic_loss = TODO
+        self.critic_loss = tf.losses.mean_squared_error(self.sy_target_n, predictions=self.critic_prediction)
 
-        # TODO: use the AdamOptimizer to optimize the loss defined above
-        self.critic_update_op = TODO
+        # use the AdamOptimizer to optimize the loss defined above
+        self.critic_update_op = tf.train.AdamOptimizer().minimize(self.critic_loss)
 
     def define_placeholders(self):
         """
@@ -63,7 +63,7 @@ class BootstrappedContinuousCritic(BaseCritic):
             loss function.
             See Agent.build_computation_graph for notation
 
-            returns:
+            returns:#####################
                 sy_ob_no: placeholder for observations
                 sy_ac_na: placeholder for actions
                 sy_adv_n: placeholder for advantages
@@ -77,9 +77,9 @@ class BootstrappedContinuousCritic(BaseCritic):
         return sy_ob_no, sy_ac_na, sy_adv_n
 
     def forward(self, ob):
-        # TODO: run your critic
+        # run your critic
         # HINT: there's a neural network structure defined above with mlp layers, which serves as your 'critic'
-        return TODO
+        return self.sess.run([self.critic_prediction], feed_dict={self.sy_ob_no: ob})[0]
 
     def update(self, ob_no, next_ob_no, re_n, terminal_n):
         """
@@ -99,24 +99,10 @@ class BootstrappedContinuousCritic(BaseCritic):
             returns:
                 loss
         """
-
-        # TODO: Implement the pseudocode below: 
-
-        # do the following (self.num_grad_steps_per_target_update * self.num_target_updates) times:
-            # every self.num_grad_steps_per_target_update steps (which includes the first step),
-                # recompute the target values by 
-                    #a) calculating V(s') by querying this critic network (ie calling 'forward') with next_ob_no
-                    #b) and computing the target values as r(s, a) + gamma * V(s')
-                # HINT: don't forget to use terminal_n to cut off the V(s') (ie set it to 0) when a terminal state is reached
-            # every time,
-                # update this critic using the observations and targets
-                # HINT1: need to sess.run the following: 
-                    #a) critic_update_op 
-                    #b) critic_loss
-                # HINT2: need to populate the following (in the feed_dict): 
-                    #a) sy_ob_no with ob_no
-                    #b) sy_target_n with target values calculated above
-        
-        TODO
-
+        for i in range(self.num_target_updates * self.num_grad_steps_per_target_update):
+            if i % self.num_grad_steps_per_target_update == 0:
+                v = self.forward(next_ob_no)
+                target_v = re_n + self.gamma * v * (1-terminal_n)
+            _, loss = self.sess.run([self.critic_update_op, self.critic_loss], feed_dict={self.sy_ob_no: ob_no,
+                                                                                          self.sy_target_n: target_v})
         return loss
